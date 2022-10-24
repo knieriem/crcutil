@@ -1,5 +1,10 @@
 package crcutil
 
+import (
+	"fmt"
+	"sync"
+)
+
 // MakeTable creates a lookup table for the specified polynomial.
 // The size of the table returned equals the length of
 // the value range determined by the number of data bits.
@@ -9,6 +14,15 @@ func (poly *Poly[T]) MakeTable(opts ...TableOption) []T {
 	for _, o := range opts {
 		o(&conf)
 	}
+
+	k := tableCacheKey(poly, &conf)
+	tableCacheMu.RLock()
+	t := tableCache[k]
+	tableCacheMu.RUnlock()
+	if t != nil {
+		return t.([]T)
+	}
+
 	N := 1 << conf.dataWidth
 
 	updateBitwise := BitwiseUpdateFn[T, T](poly)
@@ -20,6 +34,10 @@ func (poly *Poly[T]) MakeTable(opts ...TableOption) []T {
 			tab[i] = reverseBits(tab[i], poly.Width)
 		}
 	}
+
+	tableCacheMu.Lock()
+	defer tableCacheMu.Unlock()
+	tableCache[k] = tab
 	return tab
 }
 
@@ -57,4 +75,24 @@ func WithReversedBits() TableOption {
 	return func(c *tableConf) {
 		c.reverseBits = true
 	}
+}
+
+var tableCacheMu sync.RWMutex
+var tableCache = map[string]any{}
+
+func tableCacheKey[T Word](p *Poly[T], c *tableConf) string {
+	rep := ""
+	if p.Reversed {
+		rep += ".r"
+	}
+	if p.Reciprocal {
+		rep += ".R"
+	}
+	tabMod := ""
+	if c.reverseBits {
+		tabMod = ".r"
+	}
+	return fmt.Sprintf("%x%s-%x.%d%s",
+		p.Word, rep,
+		c.initial, c.dataWidth, tabMod)
 }
