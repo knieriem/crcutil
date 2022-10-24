@@ -94,3 +94,8 @@ func (p *Poly[T]) makeReciprocal() *Poly[T] {
 	r.Reciprocal = !p.Reciprocal
 	return r
 }
+
+// LSBitFirst reports whether the polynomial's representation is lsbit-first.
+func (p *Poly[T]) LSBitFirst() bool {
+	return p.Reversed
+}
