@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/knieriem/crcutil"
+	"github.com/knieriem/crcutil/poly3"
 )
 
 // This example shows how to calculate a 3-bit CRC over
@@ -30,7 +31,7 @@ type crcTabs struct {
 var crc3 crcTabs
 
 func init() {
-	poly := crcutil.GSM3.ReversedForm()
+	poly := poly3.GSM.ReversedForm()
 
 	initialValue := crcutil.WithInitialValue(5)
 	fiveBits := crcutil.WithDataWidth(5)

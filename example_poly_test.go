@@ -4,11 +4,10 @@ import (
 	"fmt"
 
 	"github.com/knieriem/crcutil"
+	"github.com/knieriem/crcutil/poly16"
 )
 
-type poly16 = crcutil.Poly[uint16]
-
-var ccitt16 = &poly16{Word: 0x1021, Width: 16}
+var ccitt16 = poly16.CCITT
 
 // This example calculates representations of the CCITT-16
 // polynomial as shown in
@@ -26,6 +25,6 @@ func ExamplePoly() {
 	// 0x8810	reversed reciprocal
 }
 
-func formatPoly(variant string, poly *poly16) {
+func formatPoly[T crcutil.Word](variant string, poly *crcutil.Poly[T]) {
 	fmt.Printf("%#04x\t%s\n", poly.Word, variant)
 }
