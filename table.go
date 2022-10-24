@@ -31,11 +31,12 @@ type tableConf struct {
 	reverseBits bool
 }
 
-// WithDataWidthByte sets the data width to 8 bits,
-// which will result in a table of 256 entries for byte-wise processing.
-func WithDataWidth(w int) TableOption {
+// WithDataWidth sets the data width to n bits,
+// which will result in a table of 2^n entries for n-bit-wise processing.
+// The default width is 8 bits for byte-wise processing.
+func WithDataWidth(n int) TableOption {
 	return func(c *tableConf) {
-		c.dataWidth = w
+		c.dataWidth = n
 	}
 }
 
