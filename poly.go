@@ -6,7 +6,7 @@ import (
 
 // A Word holds the word representation of a polynomial.
 type Word interface {
-	~uint8 | ~uint16 | ~uint32
+	uint8 | uint16 | uint32
 }
 
 // Poly defines a polynomial in a specific representation.
