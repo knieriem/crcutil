@@ -3,6 +3,8 @@ package crcutil
 import (
 	"fmt"
 	"sync"
+
+	"github.com/knieriem/crcutil/internal/impl"
 )
 
 // MakeTable creates a lookup table for the specified polynomial.
@@ -95,4 +97,29 @@ func tableCacheKey[T Word](p *Poly[T], c *tableConf) string {
 	return fmt.Sprintf("%x%s-%x.%d%s",
 		p.Word, rep,
 		c.initial, c.dataWidth, tabMod)
+}
+
+type Impl[T Word] interface {
+	Update(crc T, tab []T, p []byte) T
+	Append(b []byte, crc T) []byte
+}
+
+func (p *Poly[T]) Impl() Impl[T] {
+	var x T
+
+	switch any(x).(type) {
+	case uint8:
+		return impl.Impl8[T]{}
+	case uint16:
+		if p.LSBitFirst() {
+			return impl.Impl16LSBitFirst[T]{}
+		}
+		return impl.Impl16[T]{}
+	case uint32:
+		if p.LSBitFirst() {
+			return impl.Impl32LSBitFirst[T]{}
+		}
+		return impl.Impl32[T]{}
+	}
+	panic("type not supported")
 }
