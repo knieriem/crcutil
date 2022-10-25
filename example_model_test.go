@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/knieriem/crcutil"
+	"github.com/knieriem/crcutil/crc16"
 	"github.com/knieriem/crcutil/poly16"
 )
 
@@ -20,6 +21,12 @@ func ExampleModel() {
 	inst := ibmcrc.New()
 	inst.Update([]byte{2, 7})
 
-	fmt.Printf("%#04x", inst.Sum())
-	// Output: 0x1241
+	fmt.Printf("%#04x\n", inst.Sum())
+
+	// Alternatively, use a predefined model:
+	sum := crc16.Modbus.Checksum([]byte{2, 7})
+	fmt.Printf("%#04x", sum)
+	// Output:
+	// 0x1241
+	// 0x1241
 }
