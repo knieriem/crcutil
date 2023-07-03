@@ -92,6 +92,16 @@ fmt.Printf("0x02x\n", crc.Sum())
 [AUTOSAR Specification of CRC Routines, p.24]: https://www.autosar.org/fileadmin/standards/R22-11/CP/AUTOSAR_SWS_CRCLibrary.pdf#page=24
 
 
+## Implicit +1 notation
+
+Functions `FromImplicit1Notation` and `FromImplicit1NotationReciprocal`
+create a `Poly` from a polynomial word in [Koopman's implicit +1 notation],
+which may be helpful when using polynomials with specific Hamming Distance
+properties from the tables provided by Philip Koopman.
+
+[Koopman's implicit +1 notation]: https://users.ece.cmu.edu/~koopman/crc/notes.html#notes
+
+
 ## hash.Hash interface
 
 For an implementation aligned with Go's `hash.Hash` interface, see [github.com/knieriem/hash], which is a thin wrapper
