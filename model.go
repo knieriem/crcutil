@@ -146,3 +146,8 @@ func (inst *Inst[T]) AppendSum(in []byte) []byte {
 	}
 	return inst.impl.Append(in, crc)
 }
+
+// Table exposes the lookup table used by the instance.
+func (inst *Inst[T]) Table() []T {
+	return inst.tab
+}
