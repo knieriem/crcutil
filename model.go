@@ -82,7 +82,9 @@ type Inst[T Word] struct {
 	tab   []T
 	model *Model[T]
 	impl  Impl[T]
-	conf  *instConf
+
+	conf      *instConf
+	adjustCRC func(crc T) T
 }
 
 // NewInst returns a new instance of the Model.
@@ -92,12 +94,26 @@ func (m *Model[T]) New(opts ...InstOption) *Inst[T] {
 		o(&conf)
 	}
 
+	tab := m.Table
+	if tab == nil {
+		tab = m.Poly.MakeTable(conf.tabOpts()...)
+	}
+	adjustCRC := func(crc T) T {
+		return crc
+	}
+	if conf.compSwapInputNibbles {
+		adjustCRC = func(crc T) T {
+			return swapNibbles(crc)
+		}
+	}
 	return &Inst[T]{
-		crc:   m.initVal(),
-		tab:   m.MakeTable(),
+		crc:   adjustCRC(m.initVal()),
+		tab:   tab,
 		model: m,
 		impl:  m.Poly.Impl(),
-		conf:  &conf,
+
+		conf:      &conf,
+		adjustCRC: adjustCRC,
 	}
 }
 
@@ -105,6 +121,15 @@ type InstOption func(*instConf)
 
 type instConf struct {
 	appendSumSkipFinalXOR bool
+	compSwapInputNibbles  bool
+}
+
+func (c *instConf) tabOpts() []TableOption {
+	var opts []TableOption
+	if c.compSwapInputNibbles {
+		opts = append(opts, withSwappedInputNibbles())
+	}
+	return opts
 }
 
 // AppendSumSkipFinalXOR ensures that when calling
@@ -115,8 +140,21 @@ func AppendSumSkipFinalXOR() InstOption {
 	}
 }
 
+// WithSwappedInputNibbles ensures that bytes are
+// processed with upper and lower nibbles swapped.
+// This option is useful for 4-bit CRCs, when an
+// LSBit-first implementation is used, and the input
+// bytes shall be processed with high nibble first.
+func WithSwappedInputNibbles() InstOption {
+	return func(c *instConf) {
+		c.compSwapInputNibbles = true
+	}
+}
+
 // Reset sets the instance back to its initial state.
-func (inst *Inst[T]) Reset() { inst.crc = inst.model.initVal() }
+func (inst *Inst[T]) Reset() {
+	inst.crc = inst.adjustCRC(inst.model.initVal())
+}
 
 // Write implements an io.Writer to add bytes to the crc.
 func (inst *Inst[T]) Write(p []byte) (n int, err error) {
@@ -131,7 +169,8 @@ func (inst *Inst[T]) Update(p []byte) {
 
 // Sum returns the crc checksum; it does not change the current state.
 func (inst *Inst[T]) Sum() T {
-	return inst.model.finalize(inst.crc)
+	crc := inst.adjustCRC(inst.crc)
+	return inst.model.finalize(crc)
 }
 
 // AppendSum appends the crc checksum to the provided slice and returns
@@ -140,7 +179,7 @@ func (inst *Inst[T]) Sum() T {
 // otherwise this step will be skipped.
 // Calling AppendSum does not change the instance's current state.
 func (inst *Inst[T]) AppendSum(in []byte) []byte {
-	crc := inst.crc
+	crc := inst.adjustCRC(inst.crc)
 	if !inst.conf.appendSumSkipFinalXOR {
 		crc = inst.model.finalize(crc)
 	}

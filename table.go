@@ -35,7 +35,12 @@ func (poly *Poly[T]) MakeTable(opts ...TableOption) []T {
 		if conf.reverseBits {
 			crc = reverseBits(crc, poly.Width)
 		}
-		tab[i] = crc
+		ti := i
+		if conf.swapInputNibbles {
+			ti = int(swapNibbles(T(i)))
+			crc = swapNibbles(crc)
+		}
+		tab[ti] = crc
 	}
 
 	tableCacheMu.Lock()
@@ -44,12 +49,18 @@ func (poly *Poly[T]) MakeTable(opts ...TableOption) []T {
 	return tab
 }
 
+func swapNibbles[T Word](x T) T {
+	return (x&0xf)<<4 | (x&0xf0)>>4
+}
+
 type TableOption func(*tableConf)
 
 type tableConf struct {
 	initial     uint32
 	dataWidth   int
 	reverseBits bool
+
+	swapInputNibbles bool
 }
 
 // WithDataWidth sets the data width to n bits,
@@ -80,6 +91,16 @@ func WithReversedBits() TableOption {
 	}
 }
 
+// withSwappedInputNibbles generates a table so that nibbles
+// of input bytes will be processed in reversed order.
+// This option is useful for byte-wise processed 4-bit CRCs.
+func withSwappedInputNibbles() TableOption {
+	return func(c *tableConf) {
+		c.swapInputNibbles = true
+		c.dataWidth = 8
+	}
+}
+
 var tableCacheMu sync.RWMutex
 var tableCache = map[string]any{}
 
@@ -93,7 +114,10 @@ func tableCacheKey[T Word](p *Poly[T], c *tableConf) string {
 	}
 	tabMod := ""
 	if c.reverseBits {
-		tabMod = ".r"
+		tabMod += ".r"
+	}
+	if c.swapInputNibbles {
+		tabMod += ".sn"
 	}
 	return fmt.Sprintf("%x%s-%x.%d%s",
 		p.Word, rep,
