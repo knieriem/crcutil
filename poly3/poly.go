@@ -7,7 +7,7 @@ import (
 const N = 3
 
 var (
-	// CRC-3-GSM: x^3 + x^1 + 1
+	// CRC-3-GSM: x³ + x + 1
 	GSM = New(3)
 )
 

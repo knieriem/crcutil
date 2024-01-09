@@ -9,10 +9,10 @@ type Poly = crcutil.Poly[uint16]
 const N = 16
 
 var (
-	// CRC-16-CCITT: x^16 + x^12 + x^5 + 1
+	// CRC-16-CCITT: x¹⁶ + x¹² + x⁵ + 1
 	CCITT = New(0x1021)
 
-	// CRC-16-IBM: x^16 + x^15 + x^2 + 1
+	// CRC-16-IBM: x¹⁶ + x¹⁵ + x² + 1
 	IBM = New(0x8005)
 )
 
