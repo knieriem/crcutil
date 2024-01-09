@@ -20,7 +20,6 @@ func UpdateBitwise[T, D Word](poly *Poly[T], crc T, data D, dataWidth int) T {
 }
 
 func updateBitwiseNormal[T, D Word](poly *Poly[T], crc T, data D, dataWidth int) T {
-	mask := (T(1) << poly.Width) - 1
 	msb := T(1) << (poly.Width - 1)
 	msbData := D(1) << (dataWidth - 1)
 
@@ -35,7 +34,7 @@ func updateBitwiseNormal[T, D Word](poly *Poly[T], crc T, data D, dataWidth int)
 			crc <<= 1
 		}
 	}
-	return crc & mask
+	return crc & poly.mask()
 }
 
 func updateBitwiseReversed[T, D Word](poly *Poly[T], crcIn T, data D, dataWidth int) T {
