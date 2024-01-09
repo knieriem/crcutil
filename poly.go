@@ -77,7 +77,6 @@ func (p *Poly[T]) ReciprocalForm() *Poly[T] {
 }
 
 func (p *Poly[T]) makeReciprocal() *Poly[T] {
-	mask := (uint32(1) << p.Width) - 1
 	u := bits.Reverse32(uint32(p.Word))
 	if shift := 32 - p.Width - 1; shift > 0 {
 		u >>= shift
@@ -86,13 +85,16 @@ func (p *Poly[T]) makeReciprocal() *Poly[T] {
 	}
 
 	u |= 1
-	u &= mask
 
 	r := new(Poly[T])
-	r.Word = T(u)
+	r.Word = T(u) & p.mask()
 	r.Width = p.Width
 	r.Reciprocal = !p.Reciprocal
 	return r
+}
+
+func (p *Poly[T]) mask() T {
+	return T((uint32(1) << p.Width) - 1)
 }
 
 // LSBitFirst reports whether the polynomial's representation is lsbit-first.
