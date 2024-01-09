@@ -31,10 +31,11 @@ func (poly *Poly[T]) MakeTable(opts ...TableOption) []T {
 
 	tab := make([]T, N)
 	for i := range tab {
-		tab[i] = updateBitwise(poly, T(conf.initial), T(i), conf.dataWidth)
+		crc := updateBitwise(poly, T(conf.initial), T(i), conf.dataWidth)
 		if conf.reverseBits {
-			tab[i] = reverseBits(tab[i], poly.Width)
+			crc = reverseBits(crc, poly.Width)
 		}
+		tab[i] = crc
 	}
 
 	tableCacheMu.Lock()
