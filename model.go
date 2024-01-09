@@ -52,13 +52,13 @@ func (m *Model[T]) MakeTable() []T {
 func (m *Model[T]) initVal() T {
 	crc := m.Initial
 	if m.InitialInvert {
-		crc = ^crc
+		crc = ^crc & m.Poly.mask()
 	}
 	return crc
 }
 func (m *Model[T]) finalize(crc T) T {
 	if m.FinalInvert {
-		return ^crc
+		return ^crc & m.Poly.mask()
 	}
 	if x := m.FinalXOR; x != 0 {
 		return crc ^ x
